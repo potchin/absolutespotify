@@ -7,7 +7,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 
 
-def get_tracks_from_station(since, station_id="abr"):
+def get_tracks_from_station(since, station_id="abr", skip_before=None):
     """This uses the planetradio API to get all songs played on a given station id
     from now backwards until the datetime passed in `since`.
 
@@ -21,11 +21,14 @@ def get_tracks_from_station(since, station_id="abr"):
         since = datetime.now() - timedelta(days=7)
 
     query_date = datetime.now()
+    print(f"Pulling station data for {station_id} since {since}")
+    if skip_before:
+        print(f"Skiping songs aired before {skip_before}:00")
     # get data from now and paginating backwards until `last_update`
     while query_date > since:
         query = query_date.strftime("%Y-%m-%d %H:%M:%S")
         url = f"https://listenapi.planetradio.co.uk/api9.2/events/{station_id}/{query}/100"
-        print(url)
+        # print(url)
         ar = requests.get(url)
         ar.raise_for_status()
 
@@ -33,10 +36,12 @@ def get_tracks_from_station(since, station_id="abr"):
             nowPlayingTime = datetime.strptime(
                 track["nowPlayingTime"], "%Y-%m-%d %H:%M:%S"
             )
-            if nowPlayingTime < since:
-                break
             artist = track["nowPlayingArtist"]
             trackname = track["nowPlayingTrack"]
+            if skip_before and nowPlayingTime.hour < skip_before:
+                continue
+            if nowPlayingTime < since:
+                break
             ar_playlist.add((artist, trackname))
 
         query_date = nowPlayingTime
@@ -70,10 +75,15 @@ if __name__ == "__main__":
 
     username = config["absolutespotify"]["username"]
     playlist_id = config["absolutespotify"]["playlist_id"]
-    if "station_id" in config["absolutespotify"]:
-        bauer_station_id = config["absolutespotify"]["station_code"]
+    if "skip_before_hour" in config["absolutespotify"]:
+        skip_before_hour = int(config["absolutespotify"]["skip_before_hour"])
     else:
-        bauer_station_id = "abr"  # absolute radio
+        skip_before_hour = None
+
+    if "station_codes" in config["absolutespotify"]:
+        bauer_station_ids = config["absolutespotify"]["station_codes"].split(",")
+    else:
+        bauer_station_ids = ["abr"]  # absolute radio
 
     # Setup a connection to Spotify
     token = util.prompt_for_user_token(
@@ -99,9 +109,15 @@ if __name__ == "__main__":
         pl_last_update = datetime.now() - timedelta(days=7)
 
     existing_spotify_tracks = get_spotify_playlist_tracks(username, playlist_id)
-    radio_tracks = get_tracks_from_station(
-        since=pl_last_update, station_id=bauer_station_id
-    )
+    radio_tracks = []
+    for bauer_station_id in bauer_station_ids:
+        station_tracks = get_tracks_from_station(
+            since=pl_last_update,
+            station_id=bauer_station_id,
+            skip_before=skip_before_hour,
+        )
+        radio_tracks.extend(station_tracks)
+
     new_tracks = set()
 
     for artist, trackname in radio_tracks:
@@ -120,7 +136,7 @@ if __name__ == "__main__":
 
     sp.playlist_change_details(
         playlist_id=playlist_id,
-        description=f"Songs from {bauer_station_id}. Updated by potchin/absolutespotify on {datetime.now()}",
+        description=f"Songs from {', '.join(bauer_station_ids)}. Updated by potchin/absolutespotify on {datetime.now()}",
     )
 
     print(

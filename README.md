@@ -19,12 +19,15 @@ client_id = blah
 client_secret = some_secret
 playlist_id = get_this_from_spotify
 redirect_uri = https://localhost
-station_code = abr
+station_codes = abr,ab9
+skip_before_hour = 7
 ```
 
 Note that the `playlist_id` is not the playlist name, you can get the id by going to "Share -> Copy Link to playlist" in the spotify app.
 
-`station_code`s can be found here: https://listenapi.planetradio.co.uk/api9.2/stations
+`station_codes`s can be found [here](https://listenapi.planetradio.co.uk/api9.2/stations), add in comma separated if you want tracks from multiple stations.
+
+`skip_before_hour` can optionally be added to skip adding songs from early hours of the day (they play some odd stuff in the night). Eg setting it to `7` means that anything played between midnight and 7am wont be added.
 
 ## Behavior
 
