@@ -11,7 +11,7 @@ def get_tracks_from_station(since, station_id="abr", skip_before=None):
     """This uses the planetradio API to get all songs played on a given station id
     from now backwards until the datetime passed in `since`.
 
-    Station ids can be found here: https://listenapi.planetradio.co.uk/api9.2/stations
+    Station ids can be found here: https://listenapi.planetradio.co.uk/api9.2/stations/GB?premium=1
 
     It returns a unique list of tuples containing the artist and track name
     """
@@ -107,6 +107,10 @@ if __name__ == "__main__":
             "Unable to get last playlist update time. Pulling data for the last 7 days"
         )
         pl_last_update = datetime.now() - timedelta(days=7)
+
+    if  config["absolutespotify"].getboolean("replace_playlist"):
+        print("Removing all song from existing playlist")
+        sp.playlist_replace_items(playlist_id=playlist_id, items=[])
 
     existing_spotify_tracks = get_spotify_playlist_tracks(username, playlist_id)
     radio_tracks = []
