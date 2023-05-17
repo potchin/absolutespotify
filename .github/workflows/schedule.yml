@@ -1,0 +1,24 @@
+name: update playlist
+on:
+  schedule:
+    - cron:  '30 1 * * *'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  update_playlist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v1
+      - uses: BSFishy/pip-action@v1
+        with:
+          requirements: requirements.txt
+      
+      - name: Configure secret
+        uses: mobiledevops/secret-to-file-action@v1
+        with:
+          base64-encoded-secret: ${{ secrets.JEFF_CONFIG_INI }}
+          filename: "config.ini"
+      - run: python run.py
