@@ -16,9 +16,4 @@ jobs:
         with:
           requirements: requirements.txt
       
-      - name: Configure secret
-        uses: mobiledevops/secret-to-file-action@v1
-        with:
-          base64-encoded-secret: ${{ secrets.JEFF_CONFIG_INI }}
-          filename: "config.ini"
-      - run: python run.py
+      - run: echo ${{ secrets.JEFF_CONFIG_INI }} | base64 -d > config.ini && python run.py
