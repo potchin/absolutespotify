@@ -5,6 +5,8 @@ import requests
 import spotipy.util as util
 from pprint import pprint
 from datetime import datetime, timedelta
+from os import getenv
+from spotipy.oauth2 import SpotifyOAuth
 
 
 def get_tracks_from_station(since, station_id="abr", skip_before=None):
@@ -85,15 +87,13 @@ if __name__ == "__main__":
     else:
         bauer_station_ids = ["abr"]  # absolute radio
 
-    # Setup a connection to Spotify
-    token = util.prompt_for_user_token(
-        username,
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        username=username,
         scope="playlist-modify-private,playlist-modify-public",
         client_id=config["absolutespotify"]["client_id"],
         client_secret=config["absolutespotify"]["client_secret"],
         redirect_uri=config["absolutespotify"]["redirect_uri"],
-    )
-    sp = spotipy.Spotify(auth=token)
+        ))
 
     # try to figure out when we last ran.
     # There should be a date in the playlist description.
