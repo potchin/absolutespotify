@@ -1,7 +1,7 @@
 name: update playlist
 on:
   schedule:
-    - cron:  '30 1 * * *'
+    - cron:  '30 * * * *'
 
 env:
   REGISTRY: ghcr.io
@@ -16,4 +16,4 @@ jobs:
         with:
           requirements: requirements.txt
       
-      - run: echo ${{ secrets.JEFF_CONFIG_INI }} | base64 -d > config.ini && python run.py
+      - run: echo ${{ secrets.JEFF_CONFIG_INI }} | base64 -d > config.ini && md5sume config.ini && python run.py
