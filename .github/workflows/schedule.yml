@@ -16,4 +16,4 @@ jobs:
         with:
           requirements: requirements.txt
       
-      - run: echo ${{ secrets.JEFF_CONFIG_INI }} | base64 -d > config.ini && md5sume config.ini && python run.py
+      - run: echo ${{ secrets.JEFF_CONFIG_INI }} | base64 -d > config.ini && md5sum config.ini && python run.py
