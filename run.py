@@ -93,6 +93,7 @@ if __name__ == "__main__":
         client_id=config["absolutespotify"]["client_id"],
         client_secret=config["absolutespotify"]["client_secret"],
         redirect_uri=config["absolutespotify"]["redirect_uri"],
+        open_browser=False
         ))
 
     # try to figure out when we last ran.
