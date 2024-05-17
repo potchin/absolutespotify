@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import configparser
 import spotipy
 import requests
@@ -75,26 +76,41 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read_file(open(r"config.ini"))
 
-    username = config["absolutespotify"]["username"]
-    playlist_id = config["absolutespotify"]["playlist_id"]
-    if "skip_before_hour" in config["absolutespotify"]:
-        skip_before_hour = int(config["absolutespotify"]["skip_before_hour"])
-    else:
-        skip_before_hour = None
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
-    if "station_codes" in config["absolutespotify"]:
+    parser.add_argument("--playlist-id", help="Override the playlist")
+    parser.add_argument("--station-code", help="Override the station")
+    args = parser.parse_args()
+
+    username = config["absolutespotify"]["username"]
+
+    skip_before_hour = None
+    if args.playlist_id:
+        playlist_id = args.playlist_id
+    else:
+        playlist_id = config["absolutespotify"]["playlist_id"]
+        if "skip_before_hour" in config["absolutespotify"]:
+            skip_before_hour = int(config["absolutespotify"]["skip_before_hour"])
+
+    if args.station_code:
+        bauer_station_ids = args.station_code.split(",")
+    elif "station_codes" in config["absolutespotify"]:
         bauer_station_ids = config["absolutespotify"]["station_codes"].split(",")
     else:
         bauer_station_ids = ["abr"]  # absolute radio
 
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-        username=username,
-        scope="playlist-modify-private,playlist-modify-public",
-        client_id=config["absolutespotify"]["client_id"],
-        client_secret=config["absolutespotify"]["client_secret"],
-        redirect_uri=config["absolutespotify"]["redirect_uri"],
-        open_browser=False
-        ))
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyOAuth(
+            username=username,
+            scope="playlist-modify-private,playlist-modify-public",
+            client_id=config["absolutespotify"]["client_id"],
+            client_secret=config["absolutespotify"]["client_secret"],
+            redirect_uri=config["absolutespotify"]["redirect_uri"],
+            open_browser=False,
+        )
+    )
 
     # try to figure out when we last ran.
     # There should be a date in the playlist description.
@@ -109,7 +125,7 @@ if __name__ == "__main__":
         )
         pl_last_update = datetime.now() - timedelta(days=7)
 
-    if  config["absolutespotify"].getboolean("replace_playlist"):
+    if config["absolutespotify"].getboolean("replace_playlist"):
         print("Removing all song from existing playlist")
         sp.playlist_replace_items(playlist_id=playlist_id, items=[])
 

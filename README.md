@@ -37,3 +37,11 @@ Tracks will be added to the given playlist with these restrictions:
 - tracks will only be added once (no duplicates)
 - the last update time is saved in the playlist description
 
+## One-time mode
+
+If you just want to populate a playlist with tracks from a station once you can override the station code and playlist id via command line
+arguments. For example, create a copy of "Absolute Workout"...
+
+```
+run.py --playlist-id 1jzjXpK1JC1hcq7xR4o6lU --station-code arw
+```
